@@ -1,0 +1,43 @@
+import pymysql
+str_con=pymysql.connect('localhost','root','2288','first')
+cursor=str_con.cursor()
+sql='select * from test'
+cursor.execute(sql)
+data=cursor.fetchall()
+for i in data:
+    print(i,end='\t')
+    print()
+cursor.close()
+str_con.close()
+----------------------------------------------------------------------
+
+show databases;
+use 数据库名；
+show tables;
+desc 表名；
+create database 数据库名 charset='utf8';
+drop database 数据库名;
+
+create table test
+(
+id int primary key auto_increment not null,
+name varchar(20) not null,
+age int unsigned default 0,
+height decimal(5,2),
+gender enum('M','F','S'),
+is_delete int default 0
+);
+
+alter table test add birth datetime;
+
+alter table test change birth birth_date datetime;
+
+alter table test modify birth_date  date;
+
+alter table test drop birth_date;
+
+show create table test;
+
+insert into test values(1,'along',18,175.59,'M',0);
+
+update test set age=17,gender='F' where id=2;
