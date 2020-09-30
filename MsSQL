@@ -1,0 +1,1171 @@
+--------------------------SQL------------------------------------------
+主键表与外键表的应用实例，问题：如何让主键表中的数据和外键表中的数据在操作的时候一至？
+生成SQL脚本的作用
+
+SqlParameter[ ] pms=new SqlParameter[ ] {
+new SqlParameter("@pageSize",3 ),
+new SqlParameter("@pageIndex",1 ),
+new SqlParameter("@pageCount",SqlDbType.Int )
+	};
+cmd.CommandType=CommandType.StoredProcedure;//Text/TableDirect
+cmd.Parameters.AddWithValue("@name"," 张山");
+cmd.Parameters.AddWithValue("@autoId",   1);
+
+----===========================================================
+
+	   string sql=string.Format("insert into TblPerson(uname,uage,uheight) values('{0}',{1},{2})","黄林"，18，175);
+	--string sql=string.Format("delete from TblPerson where autoid={0}",41);
+	--string sql=string.Format("update TblPerson set uname='{0}' where autoid={1}","许正龙",40);
+	   string sql=string.Format("insert into TblClass output inserted.tclassId values('{0}','{1}',)",txtName.Text,txtDesc.Text);
+
+using (SqlCommand cmd = new SqlCommand(sql, con))
+           {
+               //cmd.setString(0, userName);
+               //cmd.Parameters.AddWithValue("@name", userName);
+               //cmd.Parameters.AddWithValue("@pwd", passWord);
+
+               cmd.Parameters.Add("@name", SqlDbType.VarChar);
+               cmd.Parameters["@name"].Value = userName;
+
+               cmd.Parameters.Add("@pwd", SqlDbType.VarChar);
+               cmd.Parameters["@pwd"].Value = passWord;
+---===================================================
+举例
+ string strconn = "Data Source=xxx;user id=sa;pwd=;initial catalog=gltest";
+        SqlConnection Conn = new SqlConnection(strconn);
+        Conn.Open();
+        string sql = "insert into users(name,pwd) values (@name,@pwd)";
+        SqlCommand cmd = new SqlCommand(sql, Conn);
+        cmd.Parameters.Add(new SqlParameter("@name", SqlDbType.NVarChar, 50));  ---因为数据库里数据char、varchar、nvarchar与C#里的string的类型是相同的
+        cmd.Parameters.Add(new SqlParameter("@pwd", SqlDbType.NVarChar, 50));
+        cmd.Parameters["@name"].Value = this.TextBox1.Text;
+        cmd.Parameters["@pwd"].Value = this.TextBox2.Text;
+        cmd.ExecuteNonQuery();
+        Conn.Close();  
+----=================================================
+
+
+using(SqlDataReader reader = cmd.ExecuteReader())
+{
+      if(reader.HasRows)
+      {
+	while(reader.Read())
+	{
+	      for(int i=0;i<reader.FieldCount;i++)
+	      {
+	            //reader.GetDataTypeName();
+		Console.Write(reader[i]+"\t");
+      	      }
+	      Console.WriteLine();
+	}
+      }
+}
+
+for与foreach的作用有什么不同，分别是用在什么情况下
+" "与' '有什么不同
+exec sp_databases//执行sp_databases内置存贮过程
+exec sp_helptext "sp_databases" //查看未加密的存贮过程sp_databases的内部结构
+--删除完数据，如何把自增长列还原成种子
+asc, desc ，临时表#tmpTable ，" "与' '的区别，try…catch…finally，StatementCompleted事件，
+SQL中[ ]括起来的可有可无如AVG(  [ ALL | DISTINCT ]  expression)
+--DDL======================
+---创建school数据库
+create database school;   ---;分号可有可无
+on primary
+(
+	name='school',
+	filename='e:\data\school.mdf',
+	size=5MB,
+	filegrowth=10MB,  --可选一个
+	filegrowth=10%,	 --可选一个
+	maxsize=100MB
+)
+log on
+(
+	name='school_log',
+	filename='e:\data\school.ldf',
+	size=3MB,
+	filegrowth=3MB,	 --可选一个
+	filegrowth=3%,	  --可选一个
+	maxsize=20MB	
+)
+
+---在school库下创建学生表TblStudent
+use school   	--切换到数据库存schoo
+go
+if not exits(select name from sys.databases where name =N'school')
+begain
+create database school
+	on primary
+(
+	name='school',
+	filename='e:/data\school.mdf',
+	size=5MB
+	filegrowth=10MB,  --可选一个
+	filegrowth=10%,	 --可选一个
+	maxsize=100MB
+	)
+	log on
+	(
+	name='school_log',
+	filename='e:/data\school.ldf',
+	size=3MB
+	filegrowth=3MB,	 --可选一个
+	filegrowth=3%,	  --可选一个
+	maxsize=20MB	
+)
+end
+go
+
+create table  TblStudent
+(
+	--tsid int not null primary key identity(1.1),  ----主键里有not null功能
+	tsid int  primary key identity(1.1),
+	tsname nvarchar(10) not null  ,
+	tsgender bit not null,
+	tsaddress nvarchar(300) null,
+	tsphone varchar(100) ,
+	tsage int,
+	tsbirthday datatime,
+	tscardid  varchar(18),
+	tsclassid int not null
+）
+go  -----分批发送（不是SQL命令，也不是T_SQL命令，只是可视化工具可以识别的一个命令）
+-------在school库下创建班级表TblClass
+create table TblClass
+(
+	tclassid int primary key identity(1,1),
+	tclassname nvarchar(50) not null,
+	tclassdesc nvarchar(100)
+)
+go
+
+--DML======================
+---用insert向表TblClass中插入数据
+select * from TblClass
+insert into TblClass(tclassname,tclassdesc) values('检查员1区','县级')
+---set IDENTITY_INSERT TblClass  on/off
+-----insert into TblClass(tclassid,tclassname,tclassdesc) values('检查员1区','县级')
+---=CTRL+R
+insert into TblClass values('安检员2区','县级')
+
+---用insert向表TblStudent中插入数据
+insert into TblStudent(tsname, tsgender, tsaddress, tsphone,tsage,tsbirthday, tscardid,  tsclassid ) values('张三','1','富源','13732784833','25','1990-1-2','22552356546632233','2')
+insert into TblStudent values('李四','1','富源','13732785833','25','1990-3-25','22552356546632233','3')
+insert into TblStudent values('王二','1','富村','13732764833','26','1989-7-12','22552356546632233','2')
+insert into TblStudent values('麻子','0','富源','13532784879','20','1985-11-5','22552356546632233',1')
+insert into TblStudent values('吕布','1','营上',       					'2')  	---允许为空的列可以不填入数据，表中结果为null
+insert into TblStudent values('吕布','1','营''上',       					'2')  	---'营''上', 转意和'营上',一样
+
+----=====一条SQL语句向TblClass表中插入多条数据
+insert into TblClass values('tclassname','tclassdesc') 
+select N'安检员2区','县级'union
+select N'安检员3区','县级'union
+select N'安检员4区','县级'union
+select N'安检员5区','县级'	   -------加N是为了在数据排序不是支持中文规则 时也能正常执行
+
+---====将一个表TblClass中的数据导入到另一个表TblClassBak中
+create table TblClassBak
+(
+	clsid int identity(1,1) primary key,
+	clsname nvarchar(50) not null,
+	clsdesc nvarchar(50)  null
+)
+
+
+
+
+insert into TblClassBak(clsname,clsdesc) select tclassname,tclassdesc from TblClass	
+
+	-----update
+update TblClass set tclassname=tclassname+'镇' where tclassid>0  ---and,  or
+
+----update tablename from anathertablename where  ?    <>不等于
+
+-----delete from tablename where....
+-----drop table name
+-----drop database name
+truncate tablename   ----just like （delete from tablename） delete all data in the table ! very quickly when delete!
+		---删除后又开始从1开始计数，而用delete还是从原来计数的地方开始计数
+		---truncate 语句不触发delete 的触发器
+
+--------=======约束-保证数据完整性
+
+---创建表
+---外键表因为表中empdepid引用了Department表中的depid
+create table Employees
+(
+	empid int identity(1,1) ,
+	empname nvarchar(50),
+	empgender char(2),
+	empage int,
+	empemail varchar(100),
+	empaddress varchar(500),
+	empdepid int	
+)
+ ---外键表
+create table Department
+(
+	depid int identity(1,1) ,
+	depname varchar(50)
+)
+
+----添加键（维一约束）时，会自动增加索引？
+
+---1，主键约束  
+---2，外键约束   
+---3，唯一约束   
+---4，默认约束  
+---5，检查约束  
+---6，非空约束
+
+---1，删除列
+alter table Employees drop column empaddress
+
+---2，增加列
+alter table Employees add column empaddr  nvarchar(500) not null
+
+---3，修改数据类型
+alter table Employees alter column empemail varchar(200) not null
+
+---4，为empid增加一个主键
+alter table Employees add constraint pk_Employees_empid primary key(empid)
+
+---5，为empname增加一个非空约束(和修改数据类型一样)
+alter table Employees alter column empname varchar(50) not null
+
+---6，为empname增加一个唯一约束
+alter table Employees add constraint UQ_Employees_empname unique(empname)
+
+---7，为性别增加一个默认约束
+alter table Employees add constraint DF_Employees_empgender default('男') for empgender
+
+---8，为年龄增加约束在1----120岁之间
+alter table Employees add constraint CK_Employees_empage check(empage>=1 and empage<=120)
+
+---9，增加外键约束
+
+----将Department 表增加一个主键约束
+alter table Department add constraint PK_Department_depid primary key(depid)
+
+-----为Department表中的depname增加一个不为空约束和唯一约束
+alter table Department alter column depname varchar(50) not null
+alter tabel Department add constraint UQ_Department_depname unique(depname)
+-----为Employees表增加depid列
+alter table Employees add column depid int not null
+
+----为Employees表中的depid增加外键约束到Department的depid
+alter table Employees add constraint FK_Employees_depid foreign key(depid) references Department(depid) on update cascade on delete cascade
+
+---通过sql代码删除约束
+alter table Employees drop constraint 
+	FK_Employees_depid,
+	CK_Employees_empage,
+	DF_Employees_empgender,
+	UQ_Employees_empname,
+	UQ_Department_depname unique(depname)
+---
+---on update cascade on delete cascade
+
+----通过SQL代码增加约束
+alter table Employees add 
+	constraint FK_Employees_depid foreign key(depid) references Department(depid) on update cascade on delete cascade,
+	constraint UQ_Department_depname unique(depname),
+	constraint CK_Employees_empage check(empage>=1 and empage<=120),
+	constraint DF_Employees_empgender default('男') for empgender,
+	constraint UQ_Employees_empname unique(empname)
+
+---top, distinct=====================================================
+select getdate()
+select '张三','李四',119
+select '张三' as zs,'李四' as ls,119    ph
+
+---sp_tables返回数据库中的所有表 asc, desc
+sp_tables
+
+select top 3 * from Employees
+select top 3 * from Employees order by Employees.empid desc
+
+----当引用了关键字（蓝色标志）时要用[ ]括起来
+---select top 5  LastName+'  'FirstName as Name ,[Address] from Employees 
+
+select top 1 percent * from Employees
+
+----distinct不能筛选类似于有identity()约束的列的数据，因为那里面的数据都是不一样的，所以要如下不能含有表中的empid列
+select distinct
+	empname,
+	empgender
+	empage
+from Employees
+
+----===============================
+---SQL聚合函数MAX,MIN,AVG,SUM,COUNT,VAR ,VARP,GROUPING, STDEV,CHECKSUM AGG 聚合函数对null不记数，在软件帮助--》---索引里可以查到便多的聚合函数
+---聚合函数出了COUNT外，聚合函数都会忽略空值null
+
+use 
+select top 0 * into NewEmployees from Employees
+set IDENTITY_INSERT NewEmployees ON
+insert into NewEmployees select * from Employees  ----insert *最好写上要插入的列名，不然会报错，可不可以有类似于这样的用法insert into NewEmployees values(    select * form Employees )
+
+
+---select avg(tsage*1.0) as 平均年龄 from TblStudent
+---select avg(tsage*1.0)     平均年龄 from TblStudent
+---select 平均年龄=avg(tsage*1.0)  from TblStudent
+---cast 或  convert
+
+---
+select * from (select count(tsage) as 记录总条数 from TblStudent ) as a
+
+select 总条数= (select count(tsage) as 记录总条数 from TblStudent ) ,
+          平均年龄=(select sum(tsage*1.0) as 平均年龄 from TblStuent )
+
+select 
+	avg(tsage*1.0) as 平均年龄 ,
+	count(*) as 记录总条数,
+	sum(tsage) as 总年龄,
+	max(tsage) as 最大年龄,
+	min(tsage) as 最小年龄
+from TblStudent
+
+---between...and...   ，in( )类似于or或者类似于>=或者<=
+select * from TblStudent where tsage between 20 and 30 and tsgender=N'男'
+
+---模糊查询 通配符_  %   [ ]  ^（^只有MSSQL Server支持，其它的DBMS用not like）
+---当使用通配符时，必须使用like 不可以用=
+select * from TblStudent where tsname like  N'吕%'     --N的意思
+select * from TblStudent where tsname like  N'%吕%'
+select * from TblStudent where tsname like  '%[%]%'   ---查名字里面有%的数据
+select * from TblStudent where tsname like  N'吕_'
+select * from TblStudent where tsname like  N'吕%' and len(tsname)=2
+select * from TblStudent where tsname like  '%[a-z]%'
+select * from TblStudent where tsname like  '%[0-9]%'
+select * from TblStudent where tsname like  '%[0129abc]%'
+select * from TblStudent where tsname like  '%[A-z][04959)(*_(*)_][ [ ] ]%'
+select * from TblStudent where tsname not like  N'吕_'
+select * from TblStudent where tsname like  '%[^0-9]%'
+
+---is null,is not null
+updata TblStudent set tsage=null where tsid=1
+updata TblStudent set tsage=''     where tsid=2
+select * from TblStudent where tsage is null    ----null和加，减、乘、除、大于、等于、小于运算后还是null
+select * from TblStudent where tsage is not null
+
+select *,(tEnglish+tMath) as 总分 from TblScore 
+where tEnglish is not null and tMath is not null
+order by (tEnglish+tMath) desc
+---order by在SQL语句中位置一定是在最后 order by返回的数据集合是有序的，故叫游标
+
+
+------group by 分组后，在select中出现的列必须是group by中包含的列或者该列必须-----在聚合函数中
+select tsclassid as 组编号，count(*) 该组中的记录条数 from TblStudent  groupby tsclassid
+select 班级Id=tsclassId,男同学人数=count(*) from TblStudent 
+----where tsgender='男' having 和聚合函数不能和where联用
+group by tsclassID
+HAVING COUNT(*)>5    ---having是用于对group by分的组进行筛选
+
+---SQL语句的执行顺序
+5>...Select 5-2>distinct,7>top(应用top选项最后计算)5-1>选择列
+1>...From表
+2>...Where条件
+3>...Group by列
+4>...Having筛选条件
+6>...Order by 列
+
+------SQL语句的处理顺序1FROM  2ON  3JOIN  4WHERE  5GROUP BY  6WITH CUBE ------或WITH ROLL UP 7 HAVING  8SELECT  9DISTINCT  10ORDER BY 11TOP
+select 
+	商品名称=商品名称,
+	销售总价=sum(销售数量*销售价格)
+from MyOrders
+group by 商品名称
+having sum(销售数量*销售价格)>3000
+order by 销售总价 desc
+
+----==================cast 与convert============
+----select '考试人数：'+100
+select '考试人数：'+convert(varchar(3),100)
+select '考试人数：'+cast(100 as varchar(3) )
+
+create table MyTest1001
+(
+	autoId int identity(1,1) primary key,
+	userName varchar(100),
+	number varchar(100)
+)
+insert into MyTest1001 values('A','1'),
+insert into MyTest1001
+select 'B','2' union
+select 'C','3' union
+select 'D','4' union
+select 'F','5' union
+select 'G','6' union
+select 'H','7' union
+select 'I,'8' union
+select 'J','10' union
+select 'K','11' union
+select 'L','12' union
+select 'M','13' union
+select 'J','9' 
+SELECT * FROM MyTest1001 ORDOR BY cast(number as int) desc
+SELECT * FROM MyTest1001 ORDOR BY convert( int,number) asc
+select convert(varchar(30),getdate(),102)  ---ANSI,ansi
+print  getdate() 
+
+
+-----======================union,union all=====
+---union查询到的结果集中有重复的就会弃了
+---union结果集不会弃重复
+select '阿龙','男','along@qq.com'
+union all
+select '阿姐','女','drann@qq.com'
+
+select tsname, tsgender, tsage from TblStudent
+union all
+select ttname, tstgender, ttage from TblTeacher order by tsage desc
+
+select * into newTblStudent from TblStudent
+select top 0 * into newTblStudent from TblStudent
+select * into newTblStudent from TblStudent where 1<>1
+
+---================字符串函数（*）
+---len(),  datalength(), ASCII(),CHAR(),LOWER(),UPPER(),LTRIM(),RTRIM()
+---LTRIM(RTRIM('    BB    ')),LEFT(),RIGHT(),SELECT LEFT('ADFAD',2)
+---SUBSTRING('ADFADFADAFD',3,4   )
+
+---===============日期函数=============
+print sysdatetime()
+print getdate()
+print datename(year,getdate())+10+'10'
+print datepart(year,getdate())+10+'10'
+print dateadd(month,2,'1990-10-10')
+select dateadd(day,10000,'1990-10-10')
+select dateadd(day,10000,getdate())
+--查询入职1年以上的员工（含1年）
+select * from test1002
+where dateadd(year,1, JoinDate)<=getdate()
+
+select * from test1002
+where dateadd(day,365, JoinDate)<=getdate()
+
+---datediff获取两个时间的差值,datepart获取时间的某一部位
+select datediff(hour,'2009-11-30',getdate())
+select datepart(year,getdate())
+select year(getdate())
+
+
+---==========ADO.NET======
+Connection,Commend,DataReader(StreamReader,Xmlreader),DataAdapter(封装了上面的三个对象)
+DataSet
+
+ConnectionStringBuilder//自动生成连接字符串
+Parameter//带参数的SQL语句
+Transaction//在ADO.NET中使用的事务
+与DataSet相关的类
+	DataView//视图类，DATaTable中的数据以不同的视角查看
+	DataRowView//DataView中的行
+	DataTable//DataSet中的数据表
+	DataRow//DataTable中的行
+	DataColumn//DataTable中的列
+	DataRealation//DataTable与DataTable的关系
+	Constraint//DataTable中建立的约束
+
+数据库学习04--执行简单增删改操作
+#region	通过ado.net连接数据库存
+--1.编写连接字符串
+/*对数据源操作*/
+/*使用Windows身份验证方式*/ 
+	string constr="data source=Along_PC; /*,*/initial catalog=school;/*Integritied*/ Integrated Security=True";   --' '
+/*指定服务器IP计算机名和实例名*/ 
+	string constr="data source=Along_PC;initial catalog=school;User Id=sa;Password=sa" ;
+sqlconnectionstringbuilder scsb =new sqlconnectionstringbuilder();
+scsb.datasource=Along_PC;
+scsb.initialcatalog=school;
+scsb.integartedscecrity=true;
+scsb.pooling=true;
+MessageBox.Show(scsb.ConnectionString);
+--2.创建连接对象
+using system.data.sqlclient.sqlconnection con=new sqlconnection(constr);
+
+--3.打开连接
+con.open();
+console.WriteLine("使用连接对象");
+
+--4.关闭连接
+con.Close();
+--5.释放资源
+con.Dispose();
+console.WriteLine("连接关闭，并释放资源");
+console.ReadKey();   //**
+
+#endregion
+
+//进入正题
+String constr="Data source=Along_PC;Initial catalog=school;Integrated Security=True";
+ using(SqlConnection con=new SqlConnection(constr))	
+{
+	con.Open();
+	string sql=string.Format("insert into TblPerson(uname,uage,uheight) values('{0}',{1},{2})","黄林"，18，175);
+	--string sql=string.Format("delete from TblPerson where autoid={0}",41);
+	--string sql=string.Format("update TblPerson set uname='{0}' where autoid={1}","许正龙",40);
+	using(SqlCommand cmd=new SqlCommand(sql,con))
+	{
+	---cmd.paramaxx.xxxx();
+	----cmd.Parameters.AddWithValue("@pwd", passWord);
+
+
+	int r=cmd.ExecuteNonQuery(); //当执行insert,delete,updata时，用这方法
+	--cmd.ExecuteScalar();//当执行返回单个值的SQL语句时
+	--cmd.ExecuteReader();//当执行返回多行多列的SQL语句时
+	Console.WriteLine("成功插入了{0}",r);
+	--messagebox.show("你更新了"+r+"行。");
+	
+	}
+}
+
+insert into TblClass output inserted.tclassid values('兴趣班','业余爱好')
+
+
+---实例==========================
+private void Select_Button_Click(object sender,EventArgs e)
+{
+	string constr="Data source=Along_PC;Initial Catalog=school;Integrated security=True";
+	int r=0;
+      try{
+	using(SqlConnection con=new SqlConnection(constr))
+	{	
+		//con.createcommand();??????????
+		string sql="select count(*) from TblClass";
+		using(SqlCommand cmd=new SqlCommand(sql,con))
+		{
+		      try
+		      {		
+			con.open();
+			//r=(int)cmd.ExecuteScalar();
+			r=Convert.ToInt32(cmd.ExecuteScalar());
+		       }
+		       catch(Exception ex1)
+		       {
+		              Console.WriteLine("发生了异常："+ex1.Message);
+		       }
+		       finally
+		       {
+			con.Close();
+			con.Dispose();
+		        }
+		}
+	
+	}
+           }
+           catch(Exception ex)
+           {
+           --throw;
+	Console.WriteLine("发生了异常："+ex.Message);
+           }
+	MessageBox.Show("表中有"+r+"条记录");
+}
+
+private void button5_click(object sender,EventArgs e)
+{
+	//显示表中的记录条数
+	string constr="Data source=Along_PC;Initial Catalog=school;Integrated security=True";
+	int tclassid=-1;
+	using(SqlConnect con=new SqlConnection(constr))
+	{
+	string sql=string.Format("insert into TblClass output inserted.tclassId values('{0}','{1}',)",txtName.Text,txtDesc.Text);
+		using(SqlCommand cmd=new SqlCommand(sql,constr))
+		{
+		con.Open();
+		tclassId=Convert.ToInt32(cmd.ExecuteScalar());
+		}
+	}
+	MessageBox.Show("插入成功，主键Id为："+tclassId);
+}
+----=========
+usiong System;
+usiong System.Collections.Generic;
+usiong System.Linq;
+usiong System.Text;
+
+namespace _查询Person个看人记录
+{
+	class Program
+	{
+	        static void Main(srting[ ] args)
+	        {
+	            #region 将TblPerson表中的数据输出到控制台
+		string constr="Data source=Along_PC;Initial Catalog=school;Integrated security=True";
+		using(SqlConnect con=new SqlConnection(constr))
+		{
+		      string sql=select * from TblPerson;
+		      using(SqlCommand cmd=new SqlCommand(sql,constr))
+		        {
+		        	con.Open();
+		        	using(SqlDataReader reader=cmd.ExecuteReader())
+		        	{
+				//判断当前的reader是否读取了数据
+				if(reader.HasRows)   //为什么不用reader.HasRows=True
+				{
+				//循环读取每一条数据
+				       while(reader.read())  //reader.Read()=True
+				       {
+				       //读取当前行中的每一列数据,用索引器
+				       object obj1=reader[0];
+				       object obj2=reader[1];
+				       object obj3=reader[2];
+				       object obj4=reader[3];
+				       Console.WriteLine("{0}\t{1}\t{2}\t{3}",obj1,obj2,obj3.obj4);
+				       //也可以使用列名，
+				       //object obj1=reader["TblId"];
+				       //object obj1=reader["Tblname"];
+				       //object obj1=reader["Tblage"];
+				       //object obj1=reader["Tblgender"];
+				       //Console.WriteLine("{0}\t{1}\t{2}\t{3}",obj1,obj2,obj3.obj4);
+				 				       
+				       //但还是强烈建议通过索引器变相的使用列名
+				       //reader.GetValues[0]只支持索引
+				        object obj1=reader.GetValues[0];
+ 				        object obj1=reader.GetValues[1];
+				        //this.GetOrdinal(name);根据列名获取列的索引
+				       
+				       
+
+				       
+				       }
+				
+				}			
+			}
+			//reader.Close();
+		        	 //reader.Dispose();
+		        }
+	                }
+		Console.WriteLine("ok");
+		Console.ReadKey();
+	            #endregion	
+	        }
+	}
+
+}
+
+----=========
+ //通过SqlDATaReader的索引器和GetValue()方法获取列值
+usiong System;
+usiong System.Collections.Generic;
+usiong System.Linq;
+usiong System.Text;
+
+namespace _查询Person个看人记录
+{
+	class Program
+	{
+	        static void Main(srting[ ] args)
+	        {
+	            #region 将TblPerson表中的数据输出到控制台
+		string constr="Data source=Along_PC;Initial Catalog=school;Integrated security=True";
+		using(SqlConnect con=new SqlConnection(constr))
+		{
+		      string sql=select * from TblPerson;
+		      using(SqlCommand cmd=new SqlCommand(sql,constr))
+		        {
+		        	con.Open();
+		        	using(SqlDataReader reader=cmd.ExecuteReader())
+		        	{
+				//判断当前的reader是否读取了数据
+				if(reader.HasRows)   //为什么不用reader.HasRows=True
+				{
+				//循环读取每一条数据
+				       while(reader.read())  //reader.Read()=True
+				       
+				       //通过SqlDATaReader的索引器和GetValue()方法获取列值
+				       {
+				       //读取当前行中的每一列数据,用索引器
+				       object obj1=reader[0];
+				       object obj2=reader[1];
+				       object obj3=reader[2];
+				       object obj4=reader[3];
+				       Console.WriteLine("{0}\t{1}\t{2}\t{3}",obj1,obj2,obj3.obj4);
+				       //也可以使用列名，
+				       //object obj1=reader["autoId"];
+				       //object obj1=reader["uname"];
+				       //object obj1=reader["uage"];
+				       //object obj1=reader["uheight"];
+				       //Console.WriteLine("{0}\t{1}\t{2}\t{3}",obj1,obj2,obj3.obj4);
+				 				       
+				       //但还是强烈建议通过索引器变相的使用列名
+				       //reader.GetValues[0]只支持索引
+				        object obj1=reader.GetValues[0];
+ 				        object obj1=reader.GetValues[1];
+				        //this.GetOrdinal(name);根据列名获取列的索引
+				       
+				       
+
+				       
+				       }
+				
+				}			
+			}
+			//reader.Close();
+		        	 //reader.Dispose();
+		        }
+	                }
+		Console.WriteLine("ok");
+		Console.ReadKey();
+	            #endregion	
+	        }
+	}
+
+}
+
+----=============
+//通过reader获取列值的时候，使用强类型（如果返回的是一个对象，不知道是什么类型则称之为弱类型；如果知道是什么类型，返回的也知道是什么类型，则称为强类型）
+usiong System;
+usiong System.Collections.Generic;
+usiong System.Linq;
+usiong System.Text;
+
+namespace _查询Person个看人记录
+{
+	class Program
+	{
+	        static void Main(srting[ ] args)
+	        {
+	            #region 将TblPerson表中的数据输出到控制台
+		string constr="Data source=Along_PC;Initial Catalog=school;Integrated security=True";
+		using(SqlConnect con=new SqlConnection(constr))
+		{
+		      string sql=select * from TblPerson;
+		      using(SqlCommand cmd=new SqlCommand(sql,constr))
+		        {
+		        	con.Open();
+		        	using(SqlDataReader reader=cmd.ExecuteReader())
+		        	{
+				//判断当前的reader是否读取了数据
+				if(reader.HasRows)   //为什么不用reader.HasRows=True
+				{
+				//循环读取每一条数据
+				       while(reader.read())  //reader.Read()=True
+				       
+				       {
+				     //通过reader获取列值的时候，使用强类型（如果返回的是一个对象，不知道是什么类型则称之为弱类型；如果知道是什么类型，返回的也知道是什么类型，则称为强类型）
+					//使用强类型的时候，如果数据库中的值为null，则报错。
+				               //避免方式：判断是否为null即可。
+				               int autoId=reader.GetInt32(0);
+				               string name=reader.GetString(1);
+				              
+				                //int?表示可空值类型。如float?
+					int? uage=reader.IsDBNull(2)?null:(int?)reader.GetInt32(2);
+				               int? height=reader.IsDBNull(3)?null:(int?)reader.GetInt32(3);
+				       	
+				               Console.WriteLine("{0},{1},{2},{3}",autoId,name,uage,hight);
+
+				       
+				       }
+				
+				}			
+			}
+			//reader.Close();
+		        	 //reader.Dispose();
+		        }
+	                }
+		Console.WriteLine("ok");
+		Console.ReadKey();
+	            #endregion	
+	        }
+	}
+
+}
+
+//通过列名来获取列的值
+usiong System;
+usiong System.Collections.Generic;
+usiong System.Linq;
+usiong System.Text;
+
+namespace _查询Person个看人记录
+{
+	class Program
+	{
+	        static void Main(srting[ ] args)
+	        {
+	            #region 将TblPerson表中的数据输出到控制台
+		string constr="Data source=Along_PC;Initial Catalog=school;Integrated security=True";
+		using(SqlConnect con=new SqlConnection(constr))
+		{
+		      string sql=select * from TblPerson;
+		      using(SqlCommand cmd=new SqlCommand(sql,constr))
+		        {
+		        	con.Open();
+		        	using(SqlDataReader reader=cmd.ExecuteReader())
+		        	{
+				//判断当前的reader是否读取了数据
+				if(reader.HasRows)   //为什么不用reader.HasRows=True
+				{
+				       int autoIdIndex=reader.GetOrdinal("autoId");
+				       int unameIndex=reader.GetOrdinal("uname");
+				       int uageIndex=reader.GetOrdinal("uage");
+				       int uheightIndex=reader.GetOrdinal("uheight");
+				       
+				//循环读取每一条数据
+				       while(reader.read())  //reader.Read()=True
+				       				      
+				       {
+				       
+				       #region 通过列名来获取列的值
+				       Console.WritLine("{0}\t{1}\t{2}\t{3}",autoIdIndex,unameIndex,uageIndex,uheightIndex);
+				       
+				       #endregion
+				       }
+				
+				}			
+			}
+			//reader.Close();
+		        	 //reader.Dispose();
+		        }
+	                }
+		Console.WriteLine("ok");
+		Console.ReadKey();
+	            #endregion	
+	        }
+	}
+
+}
+
+
+---====================把表中的数据绑定到一个控件上
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+
+namespace _把表中的数据绑定到一个控件上
+{
+       public partial class From1:Form
+       {
+	public Form1()
+	{
+		InitializeComponent();
+	}
+	private void button1_Click(object sender,EventArgs e)
+	{
+		List<Person>list=new List<Person>();   //需要先把数据加到一个集合中
+		string constr="Data source=Along_PC;Initial Catalog=school;Integrated security=True";
+		using(SqlConnection con=new SqlConnection(constr))
+		       {
+			string sql="select * from TblPerson";
+			using(SqlCommand cmd=new SqlCommand(sql,con))
+			{
+			     con.Open();
+			     using(SqlDataReader reader=cmd.ExecuteReader())
+			     {
+			     if(reader.HasRows)
+			     {
+			         while(reader.Read())
+			         {
+			               //需要先把数据加到一个集合中
+			               Person model=new Person();
+			               
+			               model.AutoId=reader.GetInt32(0);
+			               model.Uname=reader.GetString(1);
+			               model.Age=reader.IsDBNull(2)?null:(int?)reader.GetInt32(2);
+			               model.Height=reader.IsDBNull(3)null:(int?)reader.GetInt32(3);
+
+			               list.Add(model);
+			         }			         
+			     }
+			     }
+			
+			}
+			
+		       }
+		dataGridView1.DataSource=list;
+
+	}
+	private void button1_Click(object sender,EventArgs e)
+	{
+	//this.dataGridView1.DataSource=new int[] {1,2,3,4,5};
+	//this.dataGridView1.DataSource=new ArrayList() {"a","b","c"};
+	}
+       }
+
+}
+
+---====================把表中的数据绑定到一个控件上---建类
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace _06把表中的数据绑定到一个控件上
+{
+    //autoId,uname,uage,uheight
+    public class Person
+    {
+          public  Person()
+         {
+	
+         }
+
+         public int AutoId
+         {
+	get;
+	set; 
+         }
+         
+         public string Uname
+         {
+	get;
+	set;
+         }
+         
+         public int? Age
+         {
+	get;
+	set; 
+         }
+
+          public int? Height
+         {
+	get;
+	set; 
+         }         
+    }
+}
+---
+---
+---
+---
+
+---=======事务======================implicit_transactions {on|off}
+begin transaction
+commit transaction
+rollback transaction
+--把两句SQL语句放在一个事务中
+--事务特性ACID原子性，一致性，隔离性，持久性
+begin transaction  //开启事务
+        declare @sumErrors int=0
+        --set @sumErrors=0
+        --执行操作
+        update bank set blance=blance-1190 where cid='0001'
+        --立刻验证一下这句话是否执行成功了
+        set @sumErrors=@sumErrors+@@error
+        update bank set blance=blance+1190 where cid='0002'
+        set @sumErrors=@sumErrors+@@error
+        --验证是否执行成功
+        if @sumErrors=0
+        begin
+	commit transaction  --//将事务提交
+        end
+        else
+        begin
+	rollback  //回滚事务
+        end
+
+---======视图（把复杂查询封闭成一个视图）
+create view VW_Employees
+as
+select
+         e1.EmployeeId as EmpId,
+         e1.LastName as LastName,
+         e1.FirstName as FirstName,
+         e1.ReportsTo as ReportsTo,
+         e2.FirstName as ReportsToName
+from Employees as e1 left join Employees as e2 on e1.ReportsTo=e2.EmployeeId
+
+select * from VW_Employees
+drop view VW_Employees
+
+alter view VW_Employees
+as
+select
+         e1.EmployeeId as EmpId,
+         e1.LastName as LastName,
+         e1.FirstName as FirstName,
+         e1.ReportsTo as ReportsTo,
+         e2.FirstName as ReportsToName
+from Employees as e1 left join Employees as e2 on e1.ReportsTo=e2.EmployeeId
+--order by EmpId desc //在子查询或者在视图等中不能使用order by来排序，除非指定---了top语句，但可以在查视图时用order by语句
+select * from VW_Employees order by EmpId desc 
+--索引视图
+--分区视图
+
+------====存储过程======================sp_  ,xp_  ,usp_ 
+create procedure usp_add
+@num1,
+@num2
+as
+begin
+   select @num1+@num2
+end   //可加可不加
+exec usp_add @num1=100,@num2=200
+
+alter procedure usp_add
+@num1,
+@num2
+as
+begin
+   select @num1+@num2
+end
+exec usp_add 300
+
+drop procedure usp_add
+--根据班级Id查询学生信息并同返回一个查询到的记录的条数
+create proc usp_selectStuInfoByClsId
+@classId int,
+@recordCount int output  //用output定义@recordCount为输出参数
+as
+begin
+        select *from TblStudent where tsclassId=@classId
+        select @recordCount=count(*) from TblStudent where tsclassId=@classId
+end
+-------=======调用该存储过程========
+declare @rc int
+exec usp_selectStuInfoByClsId @classId=5,@recordCount=@rc output  //输出参数
+print @rc
+
+-----==============索引=================
+
+作用：是为了便快速便捷的查询
+1.聚集索引（聚簇索引）排序和物理地址是一样的，
+   一般在建主键时自动在主键上建立一个聚集索引
+   一个表中只能有一个聚集索引
+   一般在建表以后要先建一个聚集索引，然后再建立其它索引，其它索引依赖于聚集索引
+   建立索引的时候尽量避免选择那些频繁更新的列
+1.非聚集索引（非聚簇索引）
+
+--在表TblStudent的tsid列上创建聚集索引in_TblStudent
+create clustered index  in_TblStudent on TblStudent(tsid)
+
+--查询TblStudent表，通过tsid列
+select * from TblStudent where tsid<2 and tsid>4  order by tsid desc
+
+--创建索引（非聚集索引）
+cteate index in_TblStudent1 on TblStudent(tsid)
+
+--删除索引必须通过 表.索引
+drop index TblStudent.in_TblStudent
+
+--填充因子？
+
+----=========触发器，当某个事件、动作被触发后自动执行某个代码
+DDL触发器，当创建或删除一个表，或创建一个数据库等时触发create table,create database,alter,drop.....
+
+DML触发器，当表中的数据被insert,delete,update(select)
+after触发器(for),instead of触发器(before其它数据库)时触发
+
+inserted表 insert,update触发器会用到
+deleted表  delete,update触发器会用到
+
+---创建触发器tri_delete_insert_update_TblPerson当表TblPerson中的数据被删除时备--份到表TblPersonBakTable中
+create trigger tri_delete_insert_update_TblPerson on TblPerson
+for delete /*,insert,update*/
+as 
+begin
+insert into TblPersonBakTable
+select uname,uage,uheightfrom deleted
+---rollback
+end
+
+drop trigger tri_delete_insert_update_TblPerson
+
+-----===========游标===============
+--使用游标来查看3条数据
+
+--1.定义游标
+declare cur_TblPerson cursor fast_forward for select top 3 * from TblPerson
+
+--2.打开游标
+open cur_TblPerson
+
+--3查询使用游标
+fetch next from cur_TblPerson
+while @@fetch_status=0  //全局变量@@fetch_status上一条游标FETCH语句的状态
+begin
+        fetch next from cur_TblPerson
+end
+
+--4.关闭游标
+close cur_TblPerson
+
+--5.释放游标资源
+deallocate cur_TblPerson
+
+---==========动态SQL
+
+----==============DataTable/list,SqlDataAdapter==================
+private void For1_Load(object sender,EventArgs e)
+{
+         string constr="Data Source =steve-pc; Initial Catalog=itcast2013;Integrated Security=True";
+         DataTable dt =new DataTable( );
+         using(SqlDataAdapter adapter=new SqlDataAdapter("select * from Customers where CustomerId=@cid",constr))
+         {
+	//当用DATaAdapter时会自动生成Connection，Command与DataReader所以我们什么都不用做
+	adapter.SelectCommand.Parameters.Add(new SqlParameter("@cid","ALFKI"));
+	adapter.Fill(dt);
+         }
+         dataGridView1.DataSource=dt;
+}
+
+---======DataSet,Datable============
+static void Main(string[] args)
+{
+//DataSet就是一个临时数据库存，内存数据库
+  
+//2DataTable就是临时数据库存中的一个表
+
+//1手动创建一个数据库存
+    //创建一个名叫School的数据库
+    DataSet ds = new DataSet("School");
+
+//2手动创建一个表，把该表加到数据库存中
+   //这个表的名字叫Student
+   DataTable dt = new DataTable("Student");
+  //把dt加到ds中
+   ds.Tables.Add(dt);
+
+//3手动创建一些列，把该列加到表中
+   DataCloumn dc1=new DataColumn("AutoId");
+   dc1.AutoIncrement= true;
+   dc1.AutoIncrementSeed=1000;
+   dc1.AutoIncrementStep=1;
+   
+   dt.Columns.Add(dc1);
+   //dt.Constraints.Add();
+
+   dt.Columns.Add("name",typeof(string));
+   dt.Columns.Add("age",typeof(int));
+
+//4创建一些数据行
+   DataRow dr = dt.NewRow();
+   dr[1]="黄林";
+   dr[2]=18;
+
+   DataRow dr1 = dt.NewRow();
+   dr1[1]="黄林1";
+   dr1[2]=19;
+
+   dt.Rows.Add(dr);
+   dt.Rows.Add(dr1);
+   
+   dv.DataSource=dt;
+   //=====手动遍历DataSet数据库中的表与行=====
+   foreach(DataTable dtItem in ds.Tables)
+   {
+      Console.WriteLine("表名：{0}",dtItem.TableName);
+      //循环该表中的每一行
+      foreach(DataRow drItem in dtItem.Rows)
+         //循环每一列
+         fore(int i=0;i<dtItem.Columns.Count;i++)
+         {
+	Console.Write("   {0}   ",drItem[i]);
+         }
+         Console.WriteLine();  //换行
+   }
+
+}
+Console.ReadKey();
+
+---=================================================
+System.IO.Stream streamFile=(@ "D:\windows temp\temp\1.jpg ",FileMode.Open ,FileAccess.Read );//建立数据流对象
+int fileLength=?;//你所要读取文件的长度以字节为单位
+byte[] fileData=new Byte[fileLength];//新建一个数组 
+streamFile.Read(fileData,0,fileLength);//将这个数据流读取到数组中 
+string sql="insert into download(fileName,filePath,fileData,fileType) values('"+fileName+"','"+serverPath+"','"+fileData+"','"+fileType+"')";以上是最重要的几步，其余的就看你项目中怎么实际运用了。
